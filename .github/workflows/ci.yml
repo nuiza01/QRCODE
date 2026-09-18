@@ -43,9 +43,10 @@ jobs:
         run: env -u DATABASE_URL npm run check:drift
 
       # No DATABASE_URL here on purpose: the build must not require a database,
-      # which is why env parsing is lazy (see src/lib/env.ts).
-      - name: Build
-        run: env -u DATABASE_URL -u NEXT_PUBLIC_APP_URL -u VERCEL_PROJECT_PRODUCTION_URL npm run build
+      # which is why env parsing is lazy (see src/lib/env.ts). This is a
+      # Turbopack smoke build only; release admission remains a separate gate.
+      - name: Turbopack build smoke
+        run: env -u DATABASE_URL -u NEXT_PUBLIC_APP_URL -u VERCEL_PROJECT_PRODUCTION_URL npx next build
 
   # Separate clean checkout: no cached .next and never publish this synthetic
   # artifact. This verifies admission + emitted URLs, not permission to deploy.
