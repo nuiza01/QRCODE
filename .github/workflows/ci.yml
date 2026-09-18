@@ -48,6 +48,14 @@ jobs:
       - name: Turbopack build smoke
         run: env -u DATABASE_URL -u NEXT_PUBLIC_APP_URL -u VERCEL_PROJECT_PRODUCTION_URL npx next build
 
+      - name: Upload Turbopack artifact for independent review
+        uses: actions/upload-artifact@v4
+        with:
+          name: turbopack-next-artifact-${{ github.sha }}
+          path: .next
+          if-no-files-found: error
+          retention-days: 7
+
   # Separate clean checkout: no cached .next and never publish this synthetic
   # artifact. This verifies admission + emitted URLs, not permission to deploy.
   release-artifact:
