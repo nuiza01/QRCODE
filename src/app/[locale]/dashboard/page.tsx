@@ -15,8 +15,8 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const copy = {
-  th: { title: "QR ที่บันทึกไว้", description: "จัดการ Static QR ที่บันทึกในบัญชี Free ได้สูงสุด 25 รายการ", empty: "ยังไม่มี QR ที่บันทึกไว้", create: "สร้างและบันทึก QR แรก", static: "Static", updated: "อัปเดต", unavailable: "ไม่สามารถโหลด QR ที่บันทึกไว้ได้ในขณะนี้ กรุณาลองอีกครั้ง" },
-  en: { title: "Saved QR codes", description: "Manage up to 25 Static QR codes saved to your Free account.", empty: "You have not saved a QR code yet.", create: "Create and save your first QR", static: "Static", updated: "Updated", unavailable: "Saved QR codes are temporarily unavailable. Please try again." },
+  th: { title: "QR ที่บันทึกไว้", description: "จัดการ Static QR ที่บันทึกในบัญชี Free ได้สูงสุด 25 รายการ", count: (n: number) => `${n}/25 รายการ`, empty: "ยังไม่มี QR ที่บันทึกไว้", create: "สร้างและบันทึก QR แรก", createMore: "สร้าง QR เพิ่ม", static: "Static", updated: "อัปเดต", unavailable: "ไม่สามารถโหลด QR ที่บันทึกไว้ได้ในขณะนี้ กรุณาลองอีกครั้ง" },
+  en: { title: "Saved QR codes", description: "Manage up to 25 Static QR codes saved to your Free account.", count: (n: number) => `${n}/25 saved`, empty: "You have not saved a QR code yet.", create: "Create and save your first QR", createMore: "Create another QR", static: "Static", updated: "Updated", unavailable: "Saved QR codes are temporarily unavailable. Please try again." },
 } as const;
 
 type DashboardPageProps = { params: Promise<{ locale: string }> };
@@ -54,8 +54,13 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-14">
       <header className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight">{s.title}</h1>
-        <p className="mt-2 text-muted-foreground">{s.description}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">{s.title}</h1>
+            <p className="mt-2 text-muted-foreground">{s.description}</p>
+          </div>
+          <p className="text-sm font-medium text-muted-foreground" aria-label={s.count(records.length)}>{s.count(records.length)}</p>
+        </div>
       </header>
       {records.length === 0 ? (
         <Card>
@@ -65,6 +70,10 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
           </CardContent>
         </Card>
       ) : (
+        <>
+        <div className="mb-5 flex justify-end">
+          <Link href={`/${locale}/create`} className="text-sm font-medium text-primary underline underline-offset-4">{s.createMore}</Link>
+        </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {records.map((record) => (
             <Card key={record.id}>
@@ -80,6 +89,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
             </Card>
           ))}
         </div>
+        </>
       )}
     </div>
   );

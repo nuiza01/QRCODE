@@ -109,6 +109,7 @@ export const createStrings: Bundle<{
 export const signInErrorStrings: Bundle<{
   title: string;
   lead: string;
+  nextStep: string;
   retry: string;
   home: string;
   reason: Record<"state_mismatch" | "access_denied" | "unknown", string>;
@@ -116,6 +117,7 @@ export const signInErrorStrings: Bundle<{
   th: {
     title: "เข้าสู่ระบบไม่สำเร็จ",
     lead: "ยังไม่ได้เข้าสู่ระบบ จึงยังใช้ตัวสร้าง QR ไม่ได้ ลองอีกครั้งได้เลย",
+    nextStep: "หากหน้าต่าง Google ค้างหรือหมดอายุ ให้ปิดหน้าต่างเดิมแล้วเริ่มใหม่จากปุ่มด้านล่าง",
     retry: "ลองเข้าสู่ระบบอีกครั้ง",
     home: "กลับหน้าแรก",
     reason: {
@@ -128,6 +130,7 @@ export const signInErrorStrings: Bundle<{
   en: {
     title: "Sign-in did not complete",
     lead: "You are not signed in, so the generator stays closed. You can try again.",
+    nextStep: "If the Google window was left open or expired, close it and start a fresh sign-in below.",
     retry: "Try signing in again",
     home: "Back to home",
     reason: {

@@ -50,7 +50,10 @@ export default async function SignInErrorPage({ params, searchParams }: SignInEr
           <CardDescription role="alert">{reason}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">{s.lead}</p>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p>{s.lead}</p>
+            <p>{s.nextStep}</p>
+          </div>
           <div className="flex flex-wrap items-center gap-3">
             <Link className={cn(buttonVariants())} href={localePath(locale, "/create")}>
               {s.retry}
