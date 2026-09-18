@@ -1,26 +1,431 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ============================================================================
+ * Nexora QR — design tokens
+ * ----------------------------------------------------------------------------
+ * Tailwind v4: there is no tailwind.config.js. The theme lives here in `@theme`.
+ *
+ * Layering, in order:
+ *   1. `@custom-variant dark`  — makes `dark:` respond to BOTH the OS setting
+ *                                and a manual `.dark` class.
+ *   2. `:root` raw palette     — every colour literal appears exactly once.
+ *   3. semantic remap blocks   — light / system-dark / .dark / .light.
+ *   4. `@theme inline`         — exposes the semantic tokens as Tailwind
+ *                                utilities (`bg-card`, `text-muted-foreground`…).
+ *   5. `@layer base`           — element defaults, incl. Thai typography.
+ *
+ * Components must only ever reference the SEMANTIC names. Never reach for a
+ * `--nx-*` raw value or a literal hex in a component: that is what breaks dark
+ * mode six weeks from now.
+ * ========================================================================== */
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ----------------------------------------------------------------------------
+ * `dark:` variant — class override wins, OS preference is the fallback.
+ * A `.light` class on <html> pins light mode even when the OS says dark, so a
+ * future three-state toggle (system / light / dark) works without JS hacks.
+ * -------------------------------------------------------------------------- */
+@custom-variant dark {
+  &:where(.dark, .dark *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:not(.light):not(.light *)) {
+      @slot;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ----------------------------------------------------------------------------
+ * Raw palette.
+ *
+ * BRAND HUE — oklch hue ~208-218: a deep, desaturated teal-blue ("payment
+ * blue"). Reasoning, since this is a decision the whole product inherits:
+ *
+ *  - The product's differentiator is PromptPay: money moving between a Thai
+ *    shop and a Thai customer. Blue is the trust colour of Thai retail banking
+ *    (BBL, KTB, Krungsri's accents) and of PromptPay's own mark, so it reads as
+ *    "payment rail", not "startup".
+ *  - We deliberately avoid the 265-290 violet band that every generic SaaS
+ *    template ships with, and avoid green (already owned by KBank/LINE) and
+ *    purple (SCB) so we are not mistaken for a specific bank's product.
+ *  - Pulling the hue toward teal (208-218) instead of pure blue (250-260)
+ *    keeps it distinguishable from the endless blue-600 dashboards while
+ *    staying in the "safe / verified" emotional register.
+ *  - Practical constraint: the app previews black-on-white QR symbols all day.
+ *    A low-chroma cool neutral surface keeps the preview the most saturated
+ *    thing on screen, which is exactly where the eye should go.
+ *
+ * Every pair below was checked with a WCAG contrast script. Text pairs are
+ * >= 4.5:1; `--*-input` borders are >= 3:1 against their surface (WCAG 1.4.11),
+ * which is why the input border is noticeably darker than a typical shadcn one.
+ * -------------------------------------------------------------------------- */
+:root {
+  /* ── light ───────────────────────────────────────────────────────────── */
+  --nx-light-background: oklch(0.99 0.004 220);
+  --nx-light-foreground: oklch(0.205 0.026 245);
+  --nx-light-card: oklch(1 0 0);
+  --nx-light-card-foreground: oklch(0.205 0.026 245);
+  --nx-light-popover: oklch(1 0 0);
+  --nx-light-popover-foreground: oklch(0.205 0.026 245);
+  --nx-light-muted: oklch(0.966 0.01 225);
+  --nx-light-muted-foreground: oklch(0.505 0.022 240); /* 5.7:1 on background */
+  --nx-light-border: oklch(0.9 0.013 230);
+  --nx-light-input: oklch(0.62 0.02 235); /* 3.6:1 on card */
+  --nx-light-ring: oklch(0.48 0.086 218);
+  --nx-light-primary: oklch(0.48 0.086 218); /* #01697e */
+  --nx-light-primary-foreground: oklch(0.985 0.008 218); /* 6.1:1 on primary */
+  --nx-light-secondary: oklch(0.955 0.014 222);
+  --nx-light-secondary-foreground: oklch(0.29 0.03 240);
+  --nx-light-accent: oklch(0.935 0.035 205);
+  --nx-light-accent-foreground: oklch(0.32 0.057 218);
+  --nx-light-destructive: oklch(0.51 0.195 27);
+  --nx-light-destructive-foreground: oklch(0.985 0.007 27);
+  --nx-light-warning: oklch(0.56 0.122 68);
+  --nx-light-warning-foreground: oklch(0.985 0.01 68);
+  --nx-light-success: oklch(0.5 0.11 158);
+  --nx-light-success-foreground: oklch(0.985 0.01 158);
+
+  /* Modal scrim. Carries its own alpha, and is dark in BOTH themes on
+     purpose: a scrim derived from `--foreground` inverts to a *white* veil
+     in dark mode, which brightens the page instead of dimming it and leaves
+     the dialog card sitting on a field lighter than the page behind it. */
+  --nx-light-scrim: oklch(0.205 0.026 245 / 45%);
+
+  /* ── dark ────────────────────────────────────────────────────────────── */
+  --nx-dark-background: oklch(0.185 0.022 245);
+  --nx-dark-foreground: oklch(0.96 0.008 225);
+  --nx-dark-card: oklch(0.225 0.022 245);
+  --nx-dark-card-foreground: oklch(0.96 0.008 225);
+  --nx-dark-popover: oklch(0.225 0.022 245);
+  --nx-dark-popover-foreground: oklch(0.96 0.008 225);
+  --nx-dark-muted: oklch(0.268 0.022 243);
+  --nx-dark-muted-foreground: oklch(0.715 0.02 232); /* 7.4:1 on background */
+  --nx-dark-border: oklch(0.325 0.022 243);
+  --nx-dark-input: oklch(0.545 0.024 240); /* 3.5:1 on card */
+  --nx-dark-ring: oklch(0.76 0.11 208);
+  --nx-dark-primary: oklch(0.76 0.11 208); /* #48c4d5 */
+  --nx-dark-primary-foreground: oklch(0.19 0.036 225); /* 8.9:1 on primary */
+  --nx-dark-secondary: oklch(0.278 0.024 243);
+  --nx-dark-secondary-foreground: oklch(0.95 0.01 225);
+  --nx-dark-accent: oklch(0.32 0.048 215);
+  --nx-dark-accent-foreground: oklch(0.93 0.03 208);
+  --nx-dark-destructive: oklch(0.68 0.18 25);
+  --nx-dark-destructive-foreground: oklch(0.17 0.04 25);
+  --nx-dark-warning: oklch(0.79 0.14 75);
+  --nx-dark-warning-foreground: oklch(0.19 0.04 75);
+  --nx-dark-success: oklch(0.76 0.13 160);
+  --nx-dark-success-foreground: oklch(0.18 0.04 160);
+  --nx-dark-scrim: oklch(0.12 0.02 245 / 65%);
+
+  /* ── radius scale base ───────────────────────────────────────────────── */
+  --nx-radius: 0.625rem;
+}
+
+/* ----------------------------------------------------------------------------
+ * Semantic remap. Values are never repeated — only the pointers are.
+ * -------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --background: var(--nx-light-background);
+  --foreground: var(--nx-light-foreground);
+  --card: var(--nx-light-card);
+  --card-foreground: var(--nx-light-card-foreground);
+  --popover: var(--nx-light-popover);
+  --popover-foreground: var(--nx-light-popover-foreground);
+  --muted: var(--nx-light-muted);
+  --muted-foreground: var(--nx-light-muted-foreground);
+  --border: var(--nx-light-border);
+  --input: var(--nx-light-input);
+  --ring: var(--nx-light-ring);
+  --primary: var(--nx-light-primary);
+  --primary-foreground: var(--nx-light-primary-foreground);
+  --secondary: var(--nx-light-secondary);
+  --secondary-foreground: var(--nx-light-secondary-foreground);
+  --accent: var(--nx-light-accent);
+  --accent-foreground: var(--nx-light-accent-foreground);
+  --destructive: var(--nx-light-destructive);
+  --destructive-foreground: var(--nx-light-destructive-foreground);
+  --warning: var(--nx-light-warning);
+  --warning-foreground: var(--nx-light-warning-foreground);
+  --success: var(--nx-light-success);
+  --success-foreground: var(--nx-light-success-foreground);
+  --scrim: var(--nx-light-scrim);
+}
+
+/* System preference, unless the user has explicitly pinned light. */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    color-scheme: dark;
+    --background: var(--nx-dark-background);
+    --foreground: var(--nx-dark-foreground);
+    --card: var(--nx-dark-card);
+    --card-foreground: var(--nx-dark-card-foreground);
+    --popover: var(--nx-dark-popover);
+    --popover-foreground: var(--nx-dark-popover-foreground);
+    --muted: var(--nx-dark-muted);
+    --muted-foreground: var(--nx-dark-muted-foreground);
+    --border: var(--nx-dark-border);
+    --input: var(--nx-dark-input);
+    --ring: var(--nx-dark-ring);
+    --primary: var(--nx-dark-primary);
+    --primary-foreground: var(--nx-dark-primary-foreground);
+    --secondary: var(--nx-dark-secondary);
+    --secondary-foreground: var(--nx-dark-secondary-foreground);
+    --accent: var(--nx-dark-accent);
+    --accent-foreground: var(--nx-dark-accent-foreground);
+    --destructive: var(--nx-dark-destructive);
+    --destructive-foreground: var(--nx-dark-destructive-foreground);
+    --warning: var(--nx-dark-warning);
+    --warning-foreground: var(--nx-dark-warning-foreground);
+    --success: var(--nx-dark-success);
+    --success-foreground: var(--nx-dark-success-foreground);
+    --scrim: var(--nx-dark-scrim);
+  }
+}
+
+/* Manual override. Also works on a subtree (e.g. a dark hero band on a light page). */
+.dark {
+  color-scheme: dark;
+  --background: var(--nx-dark-background);
+  --foreground: var(--nx-dark-foreground);
+  --card: var(--nx-dark-card);
+  --card-foreground: var(--nx-dark-card-foreground);
+  --popover: var(--nx-dark-popover);
+  --popover-foreground: var(--nx-dark-popover-foreground);
+  --muted: var(--nx-dark-muted);
+  --muted-foreground: var(--nx-dark-muted-foreground);
+  --border: var(--nx-dark-border);
+  --input: var(--nx-dark-input);
+  --ring: var(--nx-dark-ring);
+  --primary: var(--nx-dark-primary);
+  --primary-foreground: var(--nx-dark-primary-foreground);
+  --secondary: var(--nx-dark-secondary);
+  --secondary-foreground: var(--nx-dark-secondary-foreground);
+  --accent: var(--nx-dark-accent);
+  --accent-foreground: var(--nx-dark-accent-foreground);
+  --destructive: var(--nx-dark-destructive);
+  --destructive-foreground: var(--nx-dark-destructive-foreground);
+  --warning: var(--nx-dark-warning);
+  --warning-foreground: var(--nx-dark-warning-foreground);
+  --success: var(--nx-dark-success);
+  --success-foreground: var(--nx-dark-success-foreground);
+  --scrim: var(--nx-dark-scrim);
+}
+
+/* ----------------------------------------------------------------------------
+ * Tailwind theme. `inline` so the utilities emit `var(--background)` rather
+ * than a frozen copy — that is what lets the remap blocks above re-theme a
+ * whole subtree at runtime.
+ * -------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-scrim: var(--scrim);
+
+  /* Latin face first, Thai face second: Latin code points resolve to Inter and
+     Thai code points fall through to Noto Sans Thai, which is why the order
+     matters. The `--nx-font-*` variables are injected by next/font in
+     src/app/[locale]/layout.tsx. */
+  --font-sans:
+    var(--nx-font-latin), var(--nx-font-thai), ui-sans-serif, system-ui,
+    sans-serif;
+  --font-thai: var(--nx-font-thai), ui-sans-serif, sans-serif;
+  --font-mono: var(--nx-font-mono), ui-monospace, "SF Mono", monospace;
+
+  /* Radius scale. One base knob; everything else derives from it, so changing
+     `--nx-radius` restyles the whole product. */
+  --radius-xs: calc(var(--nx-radius) - 6px);
+  --radius-sm: calc(var(--nx-radius) - 4px);
+  --radius-md: calc(var(--nx-radius) - 2px);
+  --radius-lg: var(--nx-radius);
+  --radius-xl: calc(var(--nx-radius) + 4px);
+  --radius-2xl: calc(var(--nx-radius) + 10px);
+}
+
+/* ----------------------------------------------------------------------------
+ * Base layer
+ * -------------------------------------------------------------------------- */
+@layer base {
+  /* Semantic vars (not the `--color-*` aliases) on purpose: these are declared
+     unconditionally by the remap blocks above, so they cannot be tree-shaken
+     out of the build the way an unused `@theme inline` alias can. */
+  *,
+  ::after,
+  ::before {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Thai typography ────────────────────────────────────────────────────
+   * Thai stacks up to two marks above the base glyph (vowel + tone) and one
+   * below. At Latin leading those marks collide with the line above, and the
+   * text reads as a grey block. The rule of thumb we use: +0.25rem of leading
+   * at every step of the type scale for Thai.
+   *
+   * These override Tailwind's per-size line-height variables rather than
+   * setting `line-height` directly, so `text-sm`, `text-lg`, … automatically
+   * pick up the Thai value, while an explicit `leading-*` utility still wins.
+   *
+   * The attribute is matched on whatever element carries it, so this works
+   * both for the document (`<html lang="th-TH">`, set by the root layout at
+   * src/app/[locale]/layout.tsx) and for a Thai island inside an English
+   * page. `[lang^="th-"]` is what catches the `th-TH` tag we actually emit.
+   * -------------------------------------------------------------------- */
+  :is([lang="th"], [lang^="th-"]) {
+    --text-xs--line-height: calc(1.25 / 0.75);
+    --text-sm--line-height: calc(1.5 / 0.875);
+    --text-base--line-height: calc(1.75 / 1);
+    --text-lg--line-height: calc(2 / 1.125);
+    --text-xl--line-height: calc(2 / 1.25);
+    --text-2xl--line-height: calc(2.25 / 1.5);
+    --text-3xl--line-height: calc(2.5 / 1.875);
+    --text-4xl--line-height: calc(2.75 / 2.25);
+    --text-5xl--line-height: 1.2;
+    --text-6xl--line-height: 1.15;
+    line-height: 1.75;
+    /* Thai has no italics and no small caps; synthesised obliques look broken. */
+    font-synthesis: none;
+  }
+
+  /* Headings in Thai still need more room than Latin, just not paragraph-level. */
+  :is([lang="th"], [lang^="th-"]) :is(h1, h2, h3, h4) {
+    line-height: 1.35;
+  }
+
+  /* Visible focus everywhere, including for keyboard users on custom controls. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+}
+
+@layer utilities {
+  /* Opt a Latin-heavy block (payloads, hex colours, code) out of Thai leading. */
+  .font-latin-metrics {
+    line-height: 1.5;
+  }
+}
+
+/* ----------------------------------------------------------------------------
+ * Motion.
+ *
+ * Hand-rolled instead of pulling in `tailwindcss-animate`: we are not allowed
+ * to add dependencies, and Radix only needs a handful of entrance/exit states.
+ * Keyframes live inside `@theme` so Tailwind can tree-shake the ones nobody
+ * uses. Everything here is disabled under `prefers-reduced-motion`.
+ * -------------------------------------------------------------------------- */
+@theme {
+  --animate-accordion-down: accordion-down 200ms ease-out;
+  --animate-accordion-up: accordion-up 200ms ease-out;
+  --animate-pop-in: pop-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-pop-out: pop-out 100ms ease-in;
+  --animate-fade-in: fade-in 140ms ease-out;
+  --animate-fade-out: fade-out 100ms ease-in;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+  /* Opacity only, no transform. `pop-in` scales, and scaling a full-viewport
+     modal scrim uncovers a sliver of the page at every edge for the length of
+     the animation. Anything that covers the whole viewport fades with these
+     two; anything that pops out of a trigger uses `pop-in` / `pop-out`. */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes pop-out {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

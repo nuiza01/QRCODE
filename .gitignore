@@ -33,9 +33,16 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local MariaDB data directories
+/.local-mariadb/
+/.local-mariadb-2/
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# .env* above would swallow the checked-in template
+!.env.example
